@@ -1,0 +1,57 @@
+Introduction
+============
+
+I am a fan of James Golick's resource_controller (r_c for short) at
+http://github.com/giraffesoft/resource_controller.  However, on a project I am
+working, I found that when my app performs create, update, or destroy
+operations on ActiveRecord objects, it often needs to perform operations
+involving other ActiveRecord objects as well.  Ideally, all this should be
+done in a database transaction.  But, I have not found a good way to do when
+using r_c.
+
+So, I came up with a plugin to override r_c's built-in create, destroy, and
+update actions, thus allowing my app to optionally perform additional
+operations as needed on a per action, per controller basis.
+
+
+Example
+=======
+
+class Project < ActiveRecord::Base
+  has_many :roles, :depdendent => :destroy
+end
+
+class Role < ActiveRecord::Base
+  belongs_to :project
+end
+
+class ProjectsController < ResourceController::Base
+
+  private
+
+  # define this method to override default behavior
+  def create_object
+    Project.transaction do
+      object.save!
+      create_default_roles
+    end
+    true # return true if object creation is successful
+  end
+
+  def create_default_roles
+    # create some roles
+  end
+
+  def update_object
+    super # invoke the default behavior
+    # do something else
+    true
+  end
+
+  # no need to define destroy_object because default behavior
+  # is what we want
+
+end
+
+
+Copyright (c) 2009 bitaxis.com, released under the MIT license
