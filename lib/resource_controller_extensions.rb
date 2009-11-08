@@ -1,62 +1,75 @@
 module ResourceControllerExtensions
 
-  module StandardActions
+  module Actions
 
-    def create
-      build_object
-      load_object
-      before :create
-      if create_object
-        after :create
-        set_flash :create
-        response_for :create
-      else
-        after :create_fails
-        set_flash :create_fails
-        response_for :create_fails
+    def self.included(base)
+      # we need to remove the methods first because we want to replace
+      # the original ones with slightly modified versions of our own
+      ResourceController::Actions.send(:remove_method, :create)
+      ResourceController::Actions.send(:remove_method, :destroy)
+      ResourceController::Actions.send(:remove_method, :update)
+      base.send(:include, InstanceMethods)
+    end
+
+    module InstanceMethods
+
+      def create
+        build_object
+        load_object
+        before :create
+        if create_object
+          after :create
+          set_flash :create
+          response_for :create
+        else
+          after :create_fails
+          set_flash :create_fails
+          response_for :create_fails
+        end
       end
-    end
 
-    def update
-      load_object
-      before :update
-      if update_object
-        after :update
-        set_flash :update
-        response_for :update
-      else
-        after :update_fails
-        set_flash :update_fails
-        response_for :update_fails
+      def destroy
+        load_object
+        before :destroy
+        if destroy_object
+          after :destroy
+          set_flash :destroy
+          response_for :destroy
+        else
+          after :destroy_fails
+          set_flash :destroy_fails
+          response_for :destroy_fails
+        end
       end
-    end
 
-    def destroy
-      load_object
-      before :destroy
-      if destroy_object
-        after :destroy
-        set_flash :destroy
-        response_for :destroy
-      else
-        after :destroy_fails
-        set_flash :destroy_fails
-        response_for :destroy_fails
+      def update
+        load_object
+        before :update
+        if update_object
+          after :update
+          set_flash :update
+          response_for :update
+        else
+          after :update_fails
+          set_flash :update_fails
+          response_for :update_fails
+        end
       end
-    end
 
-  private
+    private
 
-    def create_object
-      object.save
-    end
+      def create_object
+        object.save
+      end
 
-    def destroy_object
-      object.destroy
-    end
+      def destroy_object
+        object.destroy
+      end
 
-    def update_object
-      object.update_attributes object_params
+      def update_object
+        object.update_attributes object_params
+      end
+
     end
 
   end
